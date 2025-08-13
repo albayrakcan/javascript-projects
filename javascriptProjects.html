@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>javascript projects</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+
+    <!--Calculator-->
+    <h1>Calculator</h1>
+    <div style="display: flex; align-items: flex-start;">
+        <div style="display: flex; flex-direction: column;">
+            <label for="number1">first number:</label>
+
+            <input type="number" id="number1" name="number1">
+
+            <label for="number2">second number:</label>
+            <input type="number" id="number2" name="number2">
+
+            <label for="operation">operation:</label>
+            <select id="operation" name="operation">
+                <option value="+">addition(+)</option>
+                <option value="-">subtraction(-)</option>
+                <option value="*">multiplication(*)</option>
+                <option value="/">division(/)</option>
+            </select>
+
+            <button id="start_button" type="button">calculate</button>
+            <input type="number" id="outputBox" readonly>
+        </div>
+        <!--Lightbulb Toggle-->
+        <img src="images/lightbulb off.png" id="lightbulbOn" onclick="toggleImage()" style="width: 10%; margin-left: auto;"><img>
+    </div>
+    <br><br><br><br><br>
+
+    <!--Number guessing game-->
+    <h1>Number Guessing Game</h1>
+
+    <button type="button" id="holdingANumber">click me</button><br><br>
+
+    <label for="guessNumberInput">Guess the number!</label><br>
+
+    <input type="number" id="guessNumberInput" name="guessNumberInput">
+    <button type="submit" id="compareButton">go</button><br><br>
+
+    <input type="text" id="trueNumber" readonly>
+    <br><br><br><br><br>
+
+
+    <!--Click counter-->
+    <h1>Click Counter</h1>
+    <button type="button" id="clickCounterButton" onclick="countClicks()">start counting!</button><br>
+    <button type="reset" id="resetCounter" onclick="resetClicks()">reset</button>
+    <br><br><br><br><br>
+
+    <!--Countdown Timer-->
+    <h1>Countdown Timer</h1>
+    <label for="countdownTimer">Set the timer (in seconds)</label><br>
+    <input type="number" id="countdownTimer" min="0">
+    <button type="button" id="startTheCountdown" onclick="countdown()">go</button>
+    <div id="countdownContainer"></div>
+
+
+
+
+
+
+
+    <!--Load Calculator class-->
+    <script src="Calculator.js"></script>
+    <!--Load RandomNumber class-->
+    <script src="RandomNumber.js"></script>
+    <!--Load Comparer class-->
+    <script src="Comparer.js"></script>
+
+
+    <script>
+        //Calculator script
+        function buildArray(number1, number2) {
+            return [Number(number1), Number(number2)];
+        }
+        document.getElementById("start_button").addEventListener("click", function () {
+            const number1 = document.getElementById("number1").value;
+            const number2 = document.getElementById("number2").value;
+            const operation = document.getElementById("operation").value;
+
+            const numbers = buildArray(number1, number2);
+
+            const calc = new Calculator(numbers, operation);
+            const result = calc.calculate();
+
+            document.getElementById("outputBox").value = result;
+        });
+
+
+        //Number guessing game script
+        let newNumber = null;  // Store the generated number globally
+
+        //setting the number
+        document.getElementById("holdingANumber").addEventListener("click",function() {
+            const numberGenerator = new RandomNumber();
+            newNumber = numberGenerator.generate();
+
+            this.textContent = "I got a number!";  // 'this' is the button clicked
+            this.disabled = true;  // Disable the button after generating the number
+        });
+
+        //guessing the number (compare)
+        document.getElementById("compareButton").addEventListener("click", function() {
+
+            if (newNumber === null) {
+                alert("Please click 'click me' button first to generate a number.");
+                return;
+            }
+            const guessedNumberInput = document.getElementById("guessNumberInput");
+            const guessedNumber = Number(guessedNumberInput.value);
+
+            const numberComparer = new Comparer(newNumber, guessedNumber);
+            const [message, ratio] = numberComparer.compare();
+
+            document.getElementById("trueNumber").value = message;
+
+            let size = Math.min(Math.max(ratio * 14, 10), 40); // scale and clamp between 10px and 40px
+            document.getElementById("trueNumber").style.fontSize = size + "px";
+
+            if (message === "correctomondo!") {
+                // Re-enable the button and reset text after correct guess
+                const btn = document.getElementById("holdingANumber");
+                btn.disabled = false;
+                btn.textContent = "click me";
+        
+                // Also reset the stored number for a new game
+                newNumber = null;
+            }
+        })
+
+
+        //Click Counter Script
+        const defaultClickCounterMessage = "start counting!"
+        let counter = 0;
+        function countClicks() {
+            counter++
+            document.getElementById("clickCounterButton").textContent = counter;
+        }
+
+        //Reset Counter Script
+        function resetClicks() {
+            document.getElementById("clickCounterButton").textContent = defaultClickCounterMessage;
+            counter = 0;
+        }
+
+
+        //Countdown Timer Script
+        function countdown() {
+            let p = document.createElement("p");
+            p.textContent="time's up!";
+
+            //remove the p that remains after first run
+            const oldP = document.querySelector("#countdownContainer p");
+            if (oldP) oldP.remove();
+            
+            const button = document.getElementById("startTheCountdown");
+            button.disabled = true;
+
+            const input = document.getElementById("countdownTimer");
+
+            // Store the original time first
+            let time = parseInt(input.value);
+            if (isNaN(time) || time < 0) return;
+
+            // Show the message
+            input.type = "text";
+            input.size = 25;
+            input.value = "IT'S THE FINAL COUNTDOWN!!";
+
+            // After 1 second, start the real countdown
+            setTimeout(() => {
+                input.type = "number";
+                input.readOnly = true;
+                input.value = time;
+
+                const timer = setInterval(() => {
+                    if (time>0) {
+                        time--;
+                    }
+                    input.value = time;
+
+                    if (time <= 0) {
+                        clearInterval(timer);
+                        input.readOnly = false;
+                        button.disabled = false;
+                        document.getElementById("countdownContainer").appendChild(p);
+                        /*
+                        setTimeout(() => {
+                            p.remove();
+                        }, 1000);
+                        */
+                    }
+                }, 1000);
+            }, 1000);
+        }
+
+
+        //Toggle Lightbulb Script
+        let lightbulbSwitch = false;
+        const controls = document.querySelectorAll("input, button, select");
+        function toggleImage() {
+            if (!lightbulbSwitch) {
+            document.getElementById("lightbulbOn").src = "images/lightbulb on.png";
+            lightbulbSwitch = true;
+
+            document.body.style.backgroundColor="white";
+
+            controls.forEach(control => {
+                control.style.backgroundColor="white";
+                control.style.color="black";
+
+            });
+
+            } else {
+                document.getElementById("lightbulbOn").src = "images/lightbulb off.png";
+                lightbulbSwitch = false;
+                document.body.style.backgroundColor="black";
+
+                controls.forEach(control => {
+                    control.style.backgroundColor="black";
+                    control.style.color="black";
+            });
+            }
+        }
+
+
+    </script>
+</body>
+</html>
